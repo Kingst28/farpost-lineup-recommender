@@ -9,25 +9,15 @@ from stagehand.schemas import AvailableModel
 from google import genai
 import os
 
-class LLM:
-    def __init__(self, model_name, api_key=None):
-        # If no key is provided, try to pull it from the environment
-        actual_key = api_key or os.getenv("GEMINI_API_KEY")
-        
-        if not actual_key:
-            raise ValueError("No API Key found! Set GEMINI_API_KEY in Codespaces Secrets.")
-            
-        self.client = genai.Client(api_key=actual_key)
-        self.model_name = model_name
+# 1. Access keys from Codespaces Secrets
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
-    def generate(self, prompt):
-        return self.client.models.generate_content(
-            model=self.model_name,
-            contents=prompt
-        )
-
-# usage
-my_llm = LLM(model_name='gemini-2.0-flash')
+# 2. Define the LLM using CrewAI's native class
+# Note the provider prefix 'gemini/' which is required for LiteLLM routing
+my_llm = LLM(
+    model='gemini/gemini-2.0-flash',
+    api_key=GEMINI_API_KEY,
+)
 
 home_line_up_file_read_tool = FileReadTool()
 home_line_up_file_read_tool = FileReadTool(file_path='/home_team.csv')
