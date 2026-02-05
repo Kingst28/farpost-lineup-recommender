@@ -13,6 +13,12 @@ import os
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 BROWSERBASE_API_KEY = os.environ.get('BROWSERBASE_API_KEY')
 BROWSERBASE_PROJECT_ID = os.environ.get('BROWSERBASE_PROJECT_ID')
+# 1. Force the "Master" key variable that Stagehand looks for internally
+# This is the specific fix for the "model_api_key is required" error
+os.environ["MODEL_API_KEY"] = os.environ.get("GEMINI_API_KEY")
+
+# 2. Also set the provider-specific keys to be safe
+os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY")
 
 # 2. Define the LLM using CrewAI's native class
 # Note the provider prefix 'gemini/' which is required for LiteLLM routing
