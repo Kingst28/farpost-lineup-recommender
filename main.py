@@ -46,7 +46,7 @@ with StagehandTool(
     api_key=BROWSERBASE_API_KEY,
     project_id=BROWSERBASE_PROJECT_ID,
     model_api_key=GEMINI_API_KEY,  # OpenAI or Anthropic API key
-    model_name=AvailableModel.GEMINI_2_5_FLASH,  # Optional: specify which model to use
+    model_name=AvailableModel.GEMINI_2_0_FLASH,  # Optional: specify which model to use
 ) as stagehand_tool:
     # Define the Scraper Agent
     scraper_agent = Agent(
