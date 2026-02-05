@@ -54,7 +54,7 @@ with StagehandTool(
       goal="Extract Premier League stats and format them for CSV export.",
       backstory="You are a specialist in transforming web data into structured CSV formats.",
       tools=[stagehand_tool],
-      llm=my_llm,
+      llm = my_llm,
       verbose=True
     )
 
