@@ -105,9 +105,9 @@ ff_data_analyst_agent = Agent(
 # 4. Define the Task with File Output
 player_attacking_stats_web_scrape = Task(
     description=(
-        "Navigate to https://theanalyst.com/competition/premier-league/stats "
-        "Extract all player attacking stats data available from the table. Navigate through all the pages to ensure you have a comprehensive data set."
-        "Format the output strictly as a CSV with a header row."
+        "Navigate to https://theanalyst.com/competition/premier-league/stats \n"
+        "Extract all player attacking stats data available from the table. Navigate through all the pages to ensure you have a comprehensive data set. \n"
+        "Format the output strictly as a CSV with a header row. \n"
     ),
     expected_output="A CSV formatted list of all players attacking stats.",
     agent=scraper_agent,
