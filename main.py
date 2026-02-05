@@ -41,22 +41,21 @@ defending_stats_file_read_tool = FileReadTool(file_path='defending_stats.csv')
 
 goalkeeping_stats_file_read_tool = FileReadTool(file_path='goalkeeping_stats.csv')
 
-# Initialize Stagehand
-stagehand_tool = StagehandTool(
+# Initialize the tool with your API keys using a context manager
+with StagehandTool(
     api_key=BROWSERBASE_API_KEY,
     project_id=BROWSERBASE_PROJECT_ID,
-    model_name='google/gemini-2.5-flash',
-    model_api_key=GEMINI_API_KEY
-)
-
-# Define the Scraper Agent
-scraper_agent = Agent(
-    role="Data Extraction Specialist",
-    goal="Extract Premier League stats and format them for CSV export.",
-    backstory="You are a specialist in transforming web data into structured CSV formats.",
-    tools=[stagehand_tool],
-    verbose=True
-)
+    model_api_key=GEMINI_API_KEY,  # OpenAI or Anthropic API key
+    model_name=AvailableModel.GEMINI_2_5_FLASH,  # Optional: specify which model to use
+) as stagehand_tool:
+    # Define the Scraper Agent
+    scraper_agent = Agent(
+      role="Data Extraction Specialist",
+      goal="Extract Premier League stats and format them for CSV export.",
+      backstory="You are a specialist in transforming web data into structured CSV formats.",
+      tools=[stagehand_tool],
+      verbose=True
+    )
 
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
