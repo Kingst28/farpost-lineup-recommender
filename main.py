@@ -46,7 +46,7 @@ with StagehandTool(
     api_key=BROWSERBASE_API_KEY,
     project_id=BROWSERBASE_PROJECT_ID,
     model_name='google/gemini-2.5-flash',  # Optional: specify which model to use
-    model_api_key=GEMINI_API_KEY,
+    model_api_key=os.environ.get('GEMINI_API_KEY'),
 ) as stagehand_tool:
     # Define the Scraper Agent
     scraper_agent = Agent(
