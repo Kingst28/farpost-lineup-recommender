@@ -25,6 +25,7 @@ os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY")
 my_llm = LLM(
     model='gemini/gemini-2.5-flash',
     api_key=GEMINI_API_KEY,
+    base_url="https://generativelanguage.googleapis.com"
 )
 
 home_line_up_file_read_tool = FileReadTool(file_path='home_team.csv')
