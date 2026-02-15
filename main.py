@@ -24,7 +24,7 @@ os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY")
 # 2. Define the LLM using CrewAI's native class
 # Note the provider prefix 'gemini/' which is required for LiteLLM routing
 my_llm = LLM(
-    model='gemini/gemini-2.5-pro',
+    model='gemini/gemini-2.5-flash',
     api_key=GEMINI_API_KEY,
     base_url="https://generativelanguage.googleapis.com",
     temperature=0.7
@@ -54,46 +54,16 @@ goalkeeping_stats_file_read_tool = FileReadTool(file_path='goalkeeping_stats.csv
 stagehand_tool = StagehandTool(
     api_key=BROWSERBASE_API_KEY,
     project_id=BROWSERBASE_PROJECT_ID,
-    model_name='gemini/gemini-2.5-pro',  # Optional: specify which model to use
+    model_name='gemini/gemini-2.5-flash',  # Optional: specify which model to use
     model_api_key=GEMINI_API_KEY,
 )
-
-stagehand_tool.description += (
-    " IMPORTANT: The 'url' argument MUST include the protocol "
-    "(e.g., use 'https://google.com', NOT 'google.com')."
-)
-
-@tool("ValidatedStagehand")
-def validated_stagehand(instruction: str, url: str):
-    """
-    Navigates to a URL and performs an instruction. 
-    Use this for web scraping and automation.
-    """
-    # 1. HARD FIX: Ensure URL is valid for the underlying engine
-    if not url:
-        return "Error: No URL provided."
-    
-    # Strip whitespace and check protocol
-    clean_url = url.strip()
-    if not clean_url.startswith(('http://', 'https://')):
-        clean_url = f"https://{clean_url}"
-        
-    print(f"DEBUG: Stagehand attempting: {clean_url}")
-    
-    try:
-        # 2. Use the official .run() method instead of the private ._run()
-        # This allows Stagehand to handle its own internal logic/validation
-        return stagehand_tool.run(instruction=instruction, url=clean_url)
-    except Exception as e:
-        # 3. Fallback: If it still fails, tell the Agent exactly why so it can retry
-        return f"Error using Stagehand: {str(e)}. Please try again with a full 'https://' URL."
 
 # Define the Scraper Agent
 scraper_agent = Agent(
     role="Data Extraction Specialist",
     goal="Extract Premier League stats and format them for CSV export.",
     backstory="You are a specialist in transforming web data into structured CSV formats who always uses full HTTPS protocols for every URL.",
-    tools=[validated_stagehand],
+    tools=[stagehand_tool],
     llm = my_llm,
     verbose=True
 )
