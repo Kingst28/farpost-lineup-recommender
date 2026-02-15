@@ -107,7 +107,7 @@ ff_data_analyst_agent = Agent(
 player_attacking_stats_web_scrape = Task(
     description=(
         "Use the Stagehand tool to navigate specifically to the FULL URL: https://theanalyst.com/competition/premier-league/stats \n"
-        "Do not truncate the protocol. \n"
+        "Do not truncate the protocol. Important: When using the Stagehand tool, always provide the full URL starting with 'https://'. \n"
         "Extract all player attacking stats data available from the table. Navigate through all the pages to ensure you have a comprehensive data set. \n"
         "Format the output strictly as a CSV with a header row. \n"
     ),
