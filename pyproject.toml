@@ -1,5 +1,5 @@
 [project]
-name = "/workspaces/farpost-lineup-recommender"
+name = "workspaces/farpost-lineup-recommender"
 version = "0.1.0"
 description = "A CrewAI project using Stagehand for AI-powered browser automation"
 authors = [
