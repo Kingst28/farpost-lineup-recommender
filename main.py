@@ -5,6 +5,7 @@ warnings.filterwarnings('ignore')
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai_tools import FileReadTool
 from crewai_tools import StagehandTool
+from crewai.tools import tool
 from stagehand.schemas import AvailableModel
 from google import genai
 import os
