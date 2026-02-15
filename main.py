@@ -90,6 +90,16 @@ def validated_stagehand(instruction: str, url: str):
     except Exception as e:
         return f"Stagehand Error: {str(e)}. Ensure Browserbase API keys are valid."
 
+# Define the Scraper Agent
+scraper_agent = Agent(
+    role="Data Extraction Specialist",
+    goal="Extract Premier League stats and format them for CSV export.",
+    backstory="You are a specialist in transforming web data into structured CSV formats who always uses full HTTPS protocols for every URL.",
+    tools=[validated_stagehand],
+    llm = my_llm,
+    verbose=True
+)
+
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
     goal="Retrieve Fantasy Football data from relevant "
