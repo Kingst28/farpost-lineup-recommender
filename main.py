@@ -69,17 +69,24 @@ def validated_stagehand(instruction: str, url: str):
     Navigates to a URL and performs an instruction. 
     Use this for web scraping and automation.
     """
-    # 1. FORCE THE PROTOCOL (Fixes the Protocol Error)
-    if url and not url.startswith(('http://', 'https://')):
-        url = f"https://{url}"
-        
-    print(f"DEBUG: Navigating to {url} with instruction: {instruction}")
+    # 1. HARD FIX: Ensure URL is valid for the underlying engine
+    if not url:
+        return "Error: No URL provided."
     
-    # 2. CALL STAGEHAND (Fixes the NoneType Error by ensuring it's ready)
+    # Strip whitespace and check protocol
+    clean_url = url.strip()
+    if not clean_url.startswith(('http://', 'https://')):
+        clean_url = f"https://{clean_url}"
+        
+    print(f"DEBUG: Stagehand attempting: {clean_url}")
+    
     try:
-        return stagehand_tool._run(instruction=instruction, url=url)
+        # 2. Use the official .run() method instead of the private ._run()
+        # This allows Stagehand to handle its own internal logic/validation
+        return stagehand_tool.run(instruction=instruction, url=clean_url)
     except Exception as e:
-        return f"Stagehand Error: {str(e)}. Ensure Browserbase API keys are valid."
+        # 3. Fallback: If it still fails, tell the Agent exactly why so it can retry
+        return f"Error using Stagehand: {str(e)}. Please try again with a full 'https://' URL."
 
 # Define the Scraper Agent
 scraper_agent = Agent(
