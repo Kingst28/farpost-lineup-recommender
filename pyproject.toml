@@ -1,0 +1,23 @@
+[project]
+name = "farpost-lineup-recommender"
+version = "0.1.0"
+description = "A CrewAI project using Stagehand for AI-powered browser automation"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "crewai>=0.100.0",
+    "crewai-tools>=0.12.0",
+    "stagehand>=0.1.0",
+    "python-dotenv>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+]
