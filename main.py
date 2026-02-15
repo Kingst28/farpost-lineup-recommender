@@ -65,6 +65,8 @@ with StagehandTool(
       verbose=True
     )
 
+stagehand_tool.description += " IMPORTANT: The 'url' parameter MUST start with 'https://'."
+
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
     goal="Retrieve Fantasy Football data from relevant "
