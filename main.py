@@ -71,6 +71,24 @@ stagehand_tool.description += (
     "(e.g., use 'https://google.com', NOT 'google.com')."
 )
 
+@tool("ValidatedStagehand")
+def validated_stagehand(instruction: str, url: str):
+    """
+    Navigates to a URL and performs an instruction. 
+    Use this for web research and automation.
+    """
+    # 1. FORCE THE PROTOCOL (Fixes the Protocol Error)
+    if url and not url.startswith(('http://', 'https://')):
+        url = f"https://{url}"
+        
+    print(f"DEBUG: Navigating to {url} with instruction: {instruction}")
+    
+    # 2. CALL STAGEHAND (Fixes the NoneType Error by ensuring it's ready)
+    try:
+        return stagehand_tool._run(instruction=instruction, url=url)
+    except Exception as e:
+        return f"Stagehand Error: {str(e)}. Ensure Browserbase API keys are valid."
+
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
     goal="Retrieve Fantasy Football data from relevant "
