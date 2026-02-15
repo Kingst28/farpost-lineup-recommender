@@ -67,7 +67,7 @@ stagehand_tool.description += (
 def validated_stagehand(instruction: str, url: str):
     """
     Navigates to a URL and performs an instruction. 
-    Use this for web research and automation.
+    Use this for web scraping and automation.
     """
     # 1. FORCE THE PROTOCOL (Fixes the Protocol Error)
     if url and not url.startswith(('http://', 'https://')):
