@@ -62,7 +62,7 @@ with StagehandTool(
       role="Data Extraction Specialist",
       goal="Extract Premier League stats and format them for CSV export.",
       backstory="You are a specialist in transforming web data into structured CSV formats who always uses full HTTPS protocols for every URL.",
-      tools=[stagehand_tool],
+      tools=[validated_stagehand],
       llm = my_llm,
       verbose=True
     )
