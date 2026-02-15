@@ -24,7 +24,7 @@ os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY")
 # 2. Define the LLM using CrewAI's native class
 # Note the provider prefix 'gemini/' which is required for LiteLLM routing
 my_llm = LLM(
-    model='gemini/gemini-2.5-flash',
+    model='gemini/gemini-2.5-pro',
     api_key=GEMINI_API_KEY,
     base_url="https://generativelanguage.googleapis.com",
     temperature=0.7
@@ -54,7 +54,7 @@ goalkeeping_stats_file_read_tool = FileReadTool(file_path='goalkeeping_stats.csv
 stagehand_tool = StagehandTool(
     api_key=BROWSERBASE_API_KEY,
     project_id=BROWSERBASE_PROJECT_ID,
-    model_name='gemini/gemini-2.5-flash',  # Optional: specify which model to use
+    model_name='gemini/gemini-2.5-pro',  # Optional: specify which model to use
     model_api_key=GEMINI_API_KEY,
 )
 
