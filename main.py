@@ -25,7 +25,8 @@ os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY")
 my_llm = LLM(
     model='gemini/gemini-2.5-flash',
     api_key=GEMINI_API_KEY,
-    base_url="https://generativelanguage.googleapis.com"
+    base_url="https://generativelanguage.googleapis.com",
+    temperature=0.7
 )
 
 home_line_up_file_read_tool = FileReadTool(file_path='home_team.csv')
@@ -59,13 +60,16 @@ with StagehandTool(
     scraper_agent = Agent(
       role="Data Extraction Specialist",
       goal="Extract Premier League stats and format them for CSV export.",
-      backstory="You are a specialist in transforming web data into structured CSV formats.",
+      backstory="You are a specialist in transforming web data into structured CSV formats who always uses full HTTPS protocols for every URL.",
       tools=[stagehand_tool],
       llm = my_llm,
       verbose=True
     )
 
-stagehand_tool.description += " IMPORTANT: The 'url' parameter MUST start with 'https://'."
+stagehand_tool.description += (
+    " IMPORTANT: The 'url' argument MUST include the protocol "
+    "(e.g., use 'https://google.com', NOT 'google.com')."
+)
 
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
