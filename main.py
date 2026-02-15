@@ -51,21 +51,12 @@ defending_stats_file_read_tool = FileReadTool(file_path='defending_stats.csv')
 goalkeeping_stats_file_read_tool = FileReadTool(file_path='goalkeeping_stats.csv')
 
 # Initialize the tool with your API keys using a context manager
-with StagehandTool(
+stagehand_tool = StagehandTool(
     api_key=BROWSERBASE_API_KEY,
     project_id=BROWSERBASE_PROJECT_ID,
     model_name='gemini/gemini-2.5-flash',  # Optional: specify which model to use
     model_api_key=GEMINI_API_KEY,
-) as stagehand_tool:
-    # Define the Scraper Agent
-    scraper_agent = Agent(
-      role="Data Extraction Specialist",
-      goal="Extract Premier League stats and format them for CSV export.",
-      backstory="You are a specialist in transforming web data into structured CSV formats who always uses full HTTPS protocols for every URL.",
-      tools=[validated_stagehand],
-      llm = my_llm,
-      verbose=True
-    )
+)
 
 stagehand_tool.description += (
     " IMPORTANT: The 'url' argument MUST include the protocol "
