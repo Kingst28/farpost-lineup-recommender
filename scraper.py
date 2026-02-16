@@ -22,7 +22,7 @@ async def scrape_attacking_stats():
     all_stats = []
     base_url = "https://theanalyst.com/competition/premier-league/stats"
     
-    async with client.session() as session:
+    async with client.sessions() as session:
         # Navigate to the page
         print("🌐 Navigating to The Analyst Premier League stats page...")
         await session.goto(base_url)
