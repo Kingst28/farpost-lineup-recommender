@@ -11,7 +11,7 @@ from datetime import datetime
 from browserbase import Browserbase
 
 # Initialize Browserbase client
-client = Browserbase(api_key=os.getenv("BROWSERBASE_API_KEY"))
+client = Browserbase(api_key=os.environ.get('BROWSERBASE_API_KEY'))
 
 async def scrape_attacking_stats():
     """
