@@ -18,7 +18,7 @@ async def main():
         env="BROWSERBASE",
         api_key=BROWSERBASE_API_KEY,
         project_id=BROWSERBASE_PROJECT_ID,
-        model_name="gemini/gemini-1.5-flash",
+        model_name="gemini/gemini-2.5-flash",
         model_api_key=GEMINI_API_KEY
     )
     
