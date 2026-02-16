@@ -9,7 +9,6 @@ import csv
 import os
 from datetime import datetime
 from browserbase import Browserbase
-from browserbase.helpers import with_console_logs
 
 # Initialize Browserbase client
 client = Browserbase(api_key=os.getenv("BROWSERBASE_API_KEY"))
