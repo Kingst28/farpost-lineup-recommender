@@ -4,22 +4,12 @@ warnings.filterwarnings('ignore')
 
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai_tools import FileReadTool
-from crewai_tools import StagehandTool
 from crewai.tools import tool
-from stagehand.schemas import AvailableModel
 from google import genai
 import os
 
 # 1. Access keys from Codespaces Secrets
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
-BROWSERBASE_API_KEY = os.environ.get('BROWSERBASE_API_KEY')
-BROWSERBASE_PROJECT_ID = os.environ.get('BROWSERBASE_PROJECT_ID')
-# 1. Force the "Master" key variable that Stagehand looks for internally
-# This is the specific fix for the "model_api_key is required" error
-os.environ["MODEL_API_KEY"] = os.environ.get("GEMINI_API_KEY")
-
-# 2. Also set the provider-specific keys to be safe
-os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY")
 
 # 2. Define the LLM using CrewAI's native class
 # Note the provider prefix 'gemini/' which is required for LiteLLM routing
@@ -49,24 +39,6 @@ team_attacking_stats_file_read_tool = FileReadTool(file_path='team_attacking_sta
 defending_stats_file_read_tool = FileReadTool(file_path='defending_stats.csv')
 
 goalkeeping_stats_file_read_tool = FileReadTool(file_path='goalkeeping_stats.csv')
-
-# Initialize the tool with your API keys using a context manager
-stagehand_tool = StagehandTool(
-    api_key=BROWSERBASE_API_KEY,
-    project_id=BROWSERBASE_PROJECT_ID,
-    model_name='gemini/gemini-2.5-flash',  # Optional: specify which model to use
-    model_api_key=GEMINI_API_KEY,
-)
-
-# Define the Scraper Agent
-scraper_agent = Agent(
-    role="Data Extraction Specialist",
-    goal="Extract Premier League stats and format them for CSV export.",
-    backstory="You are a specialist in transforming web data into structured CSV formats who always uses full HTTPS protocols for every URL.",
-    tools=[stagehand_tool],
-    llm = my_llm,
-    verbose=True
-)
 
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
@@ -104,19 +76,6 @@ ff_data_analyst_agent = Agent(
     allow_delegation=False,
     llm = my_llm,
     verbose=True
-)
-
-# 4. Define the Task with File Output
-player_attacking_stats_web_scrape = Task(
-    description=(
-        "Use the Stagehand tool to navigate specifically to the FULL URL: https://theanalyst.com/competition/premier-league/stats \n"
-        "Do not truncate the protocol. Important: When using the Stagehand tool, always provide the full URL starting with 'https://'. \n"
-        "Extract all player attacking stats data available from the table. Navigate through all the pages to ensure you have a comprehensive data set. \n"
-        "Format the output strictly as a CSV with a header row. \n"
-    ),
-    expected_output="A CSV formatted list of all players attacking stats.",
-    agent=scraper_agent,
-    output_file="attacking_stats.csv"  # This creates the file automatically
 )
 
 extract_data = Task(
@@ -209,8 +168,8 @@ analyse_data = Task(
 )
 
 crew = Crew(
-    agents=[scraper_agent],
-    tasks=[player_attacking_stats_web_scrape],
+    agents=[ff_data_collection_agent,ff_data_analyst_agent],
+    tasks=[extract_data, analyse_data],
     verbose=False
 )
 
