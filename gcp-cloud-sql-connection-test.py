@@ -21,7 +21,6 @@ class CloudSQLQueryTool(BaseTool):
                 user=os.environ.get("DB_USER"),
                 password=os.environ.get("DB_PASS"),
                 db=os.environ.get("DB_NAME"),
-                credentials_path=os.environ.get("GCP_KEY_JSON"),
                 ip_type=IPTypes.PUBLIC  # Or IPTypes.PRIVATE
             )
             return conn
