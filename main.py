@@ -112,15 +112,15 @@ ff_data_analyst_agent = Agent(
 extract_data = Task(
     description=(
         "1. Extract home team lineup data using the cloud_sql_tool via this SQL Query 'select t.api_player_id, t.name, p.position, te.name as team from teamsheets t left join players p on t.api_player_id = p.api_player_id left join teams te on p.teams_id = te.id where user_id = '1' and p.account_id = t.account_id ORDER BY position;' \n"
-        #"2. Extract away team lineup data from the away_team.csv file using the away_line_up_file_read_tool. \n"
         "2. Extract the current matchweeks fixture data using the cloud_sql_tool via this SQL Query 'select round, hteamid,hteamname, ateamid, ateamname from prem_fixtures where round = 'Regular Season - 35';' \n"
         #"3. Extract the current matchweeks fixture difficulty ratings data from the fixture_difficulty_rating.csv file using the fixtures_difficulty_file_read_tool. \n"
-        #"4. Extract the attacking player stats data for each home team player from the attacking_stats.csv file. \n"
+        "4. Extract the player attacking stats data for each home team player via the api_player_id from the home team lineup data in step 1 using the cloud_sql_tool via this SQL Query 'select api_player_id, name, team_id, team_name, appearances, lineups, position, rating, shots_total, shots_on, goals_total, goals_assists, passes_key, passes_accuracy, dribbles_attempts, dribbles_success, fouls_drawn from player_statistics;' . \n"
         #"5. Extract the team defensive stats data for each home team players club from the team_defending_stats.csv file. \n"
         #"6. Extract the team attacking stats data for each home team player club from the team_attacking_stats.csv file. \n"
-        #"7. Extract the player defensive stats data for each home team player from the defending_stats.csv file. \n"
+        "7. Extract the player defensive stats data for each home team player via the api_player_id from the home team lineup data in step 1 using the cloud_sql_tool via this SQL Query 'select api_player_id, name, team_id, team_name, appearances, lineups, position, rating, goals_conceded, tackles_total, tackles_blocks, tackles_interceptions, duels_total, duels_won, fouls_committed from player_statistics;'. \n"
         #"8. Extract the goalkeeper stats data for each home team player from the goalkeeper_stats.csv file. \n"
         #"9. Extract the current injured players data for the Premier League from the injuries.csv file \n"
+        #Add Prem table data step 
     ),
     expected_output="A comprehensive set of data you can provide to the Fantasy Football Data Analyst Agent",
     agent=ff_data_collection_agent,
