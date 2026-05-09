@@ -53,25 +53,7 @@ class CloudSQLQueryTool(BaseTool):
 # Usage
 cloud_sql_tool = CloudSQLQueryTool()
 
-home_line_up_file_read_tool = FileReadTool(file_path='home_team.csv')
-
-away_line_up_file_read_tool = FileReadTool(file_path='away_team.csv')
-
-fixtures_file_read_tool = FileReadTool(file_path='fixtures_matchweek_10.csv')
-
 fixtures_difficulty_file_read_tool = FileReadTool(file_path='fixture_difficulty_rating.csv')
-
-injury_difficulty_file_read_tool = FileReadTool(file_path='injuries.csv')
-
-attacking_stats_file_read_tool = FileReadTool(file_path='attacking_stats.csv')
-
-team_defensive_stats_file_read_tool = FileReadTool(file_path='team_defending_stats.csv')
-
-team_attacking_stats_file_read_tool = FileReadTool(file_path='team_attacking_stats.csv')
-
-defending_stats_file_read_tool = FileReadTool(file_path='defending_stats.csv')
-
-goalkeeping_stats_file_read_tool = FileReadTool(file_path='goalkeeping_stats.csv')
 
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
@@ -88,7 +70,7 @@ ff_data_collection_agent = Agent(
     ),
     allow_delegation=False,
     llm = my_llm,
-    tools=[cloud_sql_tool],
+    tools=[cloud_sql_tool, fixtures_difficulty_file_read_tool],
     verbose=True
 )
 
