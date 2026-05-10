@@ -53,8 +53,6 @@ class CloudSQLQueryTool(BaseTool):
 # Usage
 cloud_sql_tool = CloudSQLQueryTool()
 
-#fixtures_difficulty_file_read_tool = FileReadTool(file_path='fixture_difficulty_rating.csv')
-
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
     goal="Retrieve Fantasy Football data from relevant "
