@@ -53,7 +53,7 @@ class CloudSQLQueryTool(BaseTool):
 # Usage
 cloud_sql_tool = CloudSQLQueryTool()
 
-fixtures_difficulty_file_read_tool = FileReadTool(file_path='fixture_difficulty_rating.csv')
+#fixtures_difficulty_file_read_tool = FileReadTool(file_path='fixture_difficulty_rating.csv')
 
 ff_data_collection_agent = Agent(
     role="Fantasy Football Data Collection Agent",
@@ -65,25 +65,25 @@ ff_data_collection_agent = Agent(
         "the real world fixtures for the current matchweek in the Premier League, "
         "the current Premier League table standings, "
         "the attacking and defending performance data for the current season of each player and club they play for found in the line ups, "
-        "the current injuries data for players injured in the Premier League "
-        "and the fixture difficulty rating defined by the Premier League for each real world fixture."
+        "the current injuries data for players injured in the Premier League. "
+    
     ),
     allow_delegation=False,
     llm = my_llm,
-    tools=[cloud_sql_tool, fixtures_difficulty_file_read_tool],
+    tools=[cloud_sql_tool],
     verbose=True
 )
 
 ff_data_analyst_agent = Agent(
     role="Fantasy Football Data Analyst Agent",
-    goal="Analyse the lineup, real world fixture, player performance and fixture difficulty rating "
+    goal="Analyse the lineup, real world fixture, current league table standings and player performance "
     "data provided by the fantasy football data collection agent in order to recommend the best "
     "line up for the Home team for that gameweek in order to beat the squad of the Away team on most goals scored and fewest goals conceded.",
     backstory=(
         "You are a fantasy football data analyst who aims to recommend the best lineup for the home "
         "team for a given matchweek fixture. You will base your recommendation off of the squads of both "
-        "the home and away teams, the real world Premier League fixtures for that matchweek and thier corresponding "
-        "fixture difficulty ratings. In addition to these data sets, you will also utilise the current Premier League "
+        "the home and away teams, the real world Premier League fixtures for that matchweek "
+        "In addition to these data sets, you will also utilise the current Premier League "
         "season player performance data for each player (and the clubs they play for) in the lineups to make the recommendation."
     ),
     allow_delegation=False,
@@ -95,14 +95,13 @@ extract_data = Task(
     description=(
         "1. Extract home team lineup data using the cloud_sql_tool via this SQL Query 'select t.api_player_id, t.name, p.position, te.name as team from teamsheets t left join players p on t.api_player_id = p.api_player_id left join teams te on p.teams_id = te.id where user_id = '1' and p.account_id = t.account_id ORDER BY position;' \n"
         "2. Extract the current matchweeks fixture data using the cloud_sql_tool via this SQL Query 'select round, hteamid,hteamname, ateamid, ateamname from prem_fixtures where round = 'Regular Season - 37';' \n"
-        "3. Extract the current matchweeks fixture difficulty ratings data from the fixture_difficulty_rating.csv file using the fixtures_difficulty_file_read_tool for Matchweek 37 the scale is 1-5 with 1 being easy and 5 being very hard \n"
-        "4. Extract the player attacking stats data for each home team player via the api_player_id from the home team lineup data in step 1 using the cloud_sql_tool via this SQL Query 'select api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, shots_total, shots_on, goals_total, goals_assists, passes_key, passes_accuracy, dribbles_attempts, dribbles_success, fouls_drawn from player_statistics;' In the SQL Query ensure you only select the rows where api_player_id is equal to all of the home team players api_player_ids from step 1 \n"
-        "5. Extract the team defensive stats data for each home team players club from step 1 using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, goals_against_home, goals_against_away, avg_goals_against_home, avg_goals_against_away, avg_goals_against_total, clean_sheets_home, clean_sheets_away from team_statistics;' \n"
-        "6. Extract the team attacking stats data for each home team players club from step 1 using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, wins_home, wins_away, draws_home, draws_away, losses_home, losses_away goals_for_home, goals_for_away, avg_goals_for_home, avg_goals_for_away, avg_goals_for_total, failed_to_score_home, failed_to_score_away from team_statistics;' \n"
-        "7. Extract the player defensive stats data for each home team player via the api_player_id from the home team lineup data in step 1 using the cloud_sql_tool via this SQL Query 'select api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, goals_conceded, tackles_total, tackles_blocks, tackles_interceptions, duels_total, duels_won, fouls_committed from player_statistics;' In the SQL Query ensure you only select the rows where api_player_id is equal to all of the home team players api_player_ids from step 1 \n"
-        "8. Extract the goalkeeper stats data for each home team player from step 1 using the cloud_sql_tool via this SQL Query 'select api_player_id, name, team_id, team_name, appearances, lineups, position, rating, goals_conceded, goals_saves, duels_total, duels_won FROM player_statistics WHERE position = 'Goalkeeper';' In the SQL Query ensure you only select the rows where api_player_id is equal to all of the home team players api_player_ids from step 1 where player position is Goalkeeper  \n"
-        "9. Extract the current injured players data for the Premier League from the home team lineup data in step 1. If a player is injured remove him from the recommendation \n"
-        "10. Extract the current Premier League table using the cloud_sql_tool via this SQL Query 'select * from standings;' " 
+        "3. Extract the player attacking stats data for each home team player via the api_player_id from the home team lineup data in step 1 using the cloud_sql_tool via this SQL Query 'select api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, shots_total, shots_on, goals_total, goals_assists, passes_key, passes_accuracy, dribbles_attempts, dribbles_success, fouls_drawn from player_statistics;' In the SQL Query ensure you only select the rows where api_player_id is equal to all of the home team players api_player_ids from step 1 \n"
+        "4. Extract the team defensive stats data for each home team players club from step 1 using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, goals_against_home, goals_against_away, avg_goals_against_home, avg_goals_against_away, avg_goals_against_total, clean_sheets_home, clean_sheets_away from team_statistics;' \n"
+        "5. Extract the team attacking stats data for each home team players club from step 1 using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, wins_home, wins_away, draws_home, draws_away, losses_home, losses_away goals_for_home, goals_for_away, avg_goals_for_home, avg_goals_for_away, avg_goals_for_total, failed_to_score_home, failed_to_score_away from team_statistics;' \n"
+        "6. Extract the player defensive stats data for each home team player via the api_player_id from the home team lineup data in step 1 using the cloud_sql_tool via this SQL Query 'select api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, goals_conceded, tackles_total, tackles_blocks, tackles_interceptions, duels_total, duels_won, fouls_committed from player_statistics;' In the SQL Query ensure you only select the rows where api_player_id is equal to all of the home team players api_player_ids from step 1 \n"
+        "7. Extract the goalkeeper stats data for each home team player from step 1 using the cloud_sql_tool via this SQL Query 'select api_player_id, name, team_id, team_name, appearances, lineups, position, rating, goals_conceded, goals_saves, duels_total, duels_won FROM player_statistics WHERE position = 'Goalkeeper';' In the SQL Query ensure you only select the rows where api_player_id is equal to all of the home team players api_player_ids from step 1 where player position is Goalkeeper  \n"
+        "8. Extract the current injured players data for the Premier League from the home team lineup data in step 1. If a player is injured remove the player from the recommendation \n"
+        "9. Extract the current Premier League table using the cloud_sql_tool via this SQL Query 'select * from standings;' " 
     ),
     expected_output="A comprehensive set of data you can provide to the Fantasy Football Data Analyst Agent",
     agent=ff_data_collection_agent,
@@ -110,7 +109,7 @@ extract_data = Task(
 
 analyse_data = Task(
     description=(
-        "1. Analyse the lineup, real world fixture, player and team attacking and defending stats and the fixture difficulty rating data provided by the data collection agent /n"
+        "1. Analyse the lineup, real world fixture, league table, player and team attacking and defending stats data provided by the data collection agent /n"
         "2. Use the rules of the fantasy football game here: /n"
 
 "On a ‘Match weekend’ your team will have a score calculated as follows: /n"
@@ -174,9 +173,9 @@ analyse_data = Task(
 "subsequent match scores due to this process. /n"
 
         "to recommend the best lineup. /n"
-        "3. Analyse each player in the Home team lineup individually taking into consideration thier individual and club attacking and defending stats, the real world fixture, difficulty rating and injury data. /n"
+        "3. Analyse each player in the Home team lineup individually taking into consideration thier individual and club attacking and defending stats, the real world fixture, league table and injury data. /n"
     ),
-    expected_output="Recommendation of the Home Team lineup (1 Goalkeeper, 4 Defenders, 4 Midfielders, 2 Strikers) the fantasy football player should select for the gameweek in order to beat the Away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home_team.csv file even if there are no stats available attacking and defending wise for an individual player. Provide a summary of the logic used.",
+    expected_output="Recommendation of the Home Team lineup (1 Goalkeeper, 4 Defenders, 4 Midfielders, 2 Strikers) the fantasy football player should select for the gameweek in order to beat the Away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home team linup data even if there are no stats available attacking and defending wise for an individual player. Provide a summary of the logic used.",
     agent=ff_data_analyst_agent,
 )
 
