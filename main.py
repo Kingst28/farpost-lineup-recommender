@@ -80,8 +80,8 @@ ff_data_analyst_agent = Agent(
     backstory=(
         "You are a fantasy football data analyst who aims to recommend the best lineup for the home "
         "team for a given matchweek fixture. You will base your recommendation off of the squads of both "
-        "the home and away teams, the real world Premier League fixtures for that matchweek "
-        "In addition to these data sets, you will also utilise the current Premier League "
+        "the home and away teams and the real world Premier League fixtures for that matchweek. "
+        "In addition to these data sets, you will also utilise the current Premier League table and "
         "season player performance data for each player (and the clubs they play for) in the lineups to make the recommendation."
     ),
     allow_delegation=False,
