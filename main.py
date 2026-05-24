@@ -59,7 +59,7 @@ ff_data_collection_agent = Agent(
     "data sources which will inform the fantasy football data analyst agent",
     backstory=(
         "Your job is to retrieve a set of pre-defined fantasy football related data. "
-        "These data sets include home team line up data for the current matchweek, "
+        "These data sets include home team squad data for the current matchweek, "
         "the real world fixtures for the current matchweek in the Premier League, "
         "the current Premier League table standings, "
         "the attacking and defending performance data for the current season of each player and club they play for found in the line ups, "
@@ -91,7 +91,7 @@ ff_data_analyst_agent = Agent(
 
 extract_data = Task(
     description=(
-        "1. Extract home team lineup data using the cloud_sql_tool via this SQL Query 'select t.api_player_id, t.name, p.position, te.name as team from teamsheets t left join players p on t.api_player_id = p.api_player_id left join teams te on p.teams_id = te.id where user_id = '1' and p.account_id = t.account_id ORDER BY position;' \n"
+        "1. Extract home team squad data using the cloud_sql_tool via this SQL Query 'select t.api_player_id, t.name, p.position, te.name as team from teamsheets t left join players p on t.api_player_id = p.api_player_id left join teams te on p.teams_id = te.id where user_id = '1' and p.account_id = t.account_id ORDER BY position;' \n"
         "2. Extract the current matchweeks fixture data using the cloud_sql_tool via this SQL Query 'select round, hteamid, hteamname, ateamid, ateamname from prem_fixtures where round = 'Regular Season - 38';' \n"
         "3. Extract the player attacking stats data for each home team player using the cloud_sql_tool via this SQL Query 'SELECT api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, shots_total, shots_on, goals_total, goals_assists, passes_key, passes_accuracy, dribbles_attempts, dribbles_success, fouls_drawn FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '1');'\n"
         "4. Extract the team defensive stats data for each home team players club using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, goals_against_home, goals_against_away, avg_goals_against_home, avg_goals_against_away, avg_goals_against_total, clean_sheets_home, clean_sheets_away from team_statistics WHERE team_id IN (SELECT id FROM teams where id IN (SELECT p.teams_id FROM teamsheets t LEFT JOIN players p ON t.api_player_id = p.api_player_id WHERE t.user_id = '1'));' \n"
