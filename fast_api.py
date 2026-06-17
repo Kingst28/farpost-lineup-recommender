@@ -52,10 +52,11 @@ cloud_sql_tool = CloudSQLQueryTool()
 # 3. Pydantic Schema for incoming Rails requests
 class CrewRequest(BaseModel):
     user_id: str
+    matchday: str
     callback_url: str
 
 # 4. Asynchronous Background Worker
-def execute_crew_workflow(user_id: str, callback_url: str):
+def execute_crew_workflow(user_id: str, matchday: str, callback_url: str):
     logging.info(f"Starting CrewAI execution for user_id: {user_id}")
     try:
         # Define Agents
@@ -98,7 +99,7 @@ def execute_crew_workflow(user_id: str, callback_url: str):
         extract_data = Task(
             description=(
                 f"1. Extract home team squad data using the cloud_sql_tool via this SQL Query 'select t.api_player_id, t.name, p.position, te.name as team from teamsheets t left join players p on t.api_player_id = p.api_player_id left join teams te on p.teams_id = te.id where user_id = '{user_id}' and p.account_id = t.account_id ORDER BY position;'\n"
-                f"2. Extract the current matchweeks fixture data using the cloud_sql_tool via this SQL Query 'select round, hteamid, hteamname, ateamid, ateamname from prem_fixtures where round = 'Regular Season - 38';'\n"
+                f"2. Extract the current matchweeks fixture data using the cloud_sql_tool via this SQL Query 'select round, hteamid, hteamname, ateamid, ateamname from prem_fixtures where round = '{matchday}';'\n"
                 f"3. Extract the player attacking stats data for each home team player using the cloud_sql_tool via this SQL Query 'SELECT api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, shots_total, shots_on, goals_total, goals_assists, passes_key, passes_accuracy, dribbles_attempts, dribbles_success, fouls_drawn FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}');'\n"
                 f"4. Extract the team defensive stats data for each home team players club using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, goals_against_home, goals_against_away, avg_goals_against_home, avg_goals_against_away, avg_goals_against_total, clean_sheets_home, clean_sheets_away from team_statistics WHERE team_id IN (SELECT id FROM teams where id IN (SELECT p.teams_id FROM teamsheets t LEFT JOIN players p ON t.api_player_id = p.api_player_id WHERE t.user_id = '{user_id}'));'\n"
                 f"5. Extract the team attacking stats data for each home team players club using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, wins_home, wins_away, draws_home, draws_away, losses_home, losses_away goals_for_home, goals_for_away, avg_goals_for_home, avg_goals_for_away, avg_goals_for_total, failed_to_score_home, failed_to_score_away from team_statistics WHERE team_id IN (SELECT id FROM teams where id IN (SELECT p.teams_id FROM teamsheets t LEFT JOIN players p ON t.api_player_id = p.api_player_id WHERE t.user_id = '{user_id}'));'\n"
@@ -199,6 +200,7 @@ def execute_crew_workflow(user_id: str, callback_url: str):
         payload = {
             "status": "completed",
             "user_id": user_id,
+            "matchday": matchday,
             "result": str(result.raw)
         }
     except Exception as e:
