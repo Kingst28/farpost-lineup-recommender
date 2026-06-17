@@ -223,5 +223,5 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str):
 @app.post("/api/v1/lineup-analysis")
 async def start_analysis(request: CrewRequest, background_tasks: BackgroundTasks):
     # Enqueue execution thread instantly and respond with 202
-    background_tasks.add_task(execute_crew_workflow, request.user_id, str(request.callback_url))
+    background_tasks.add_task(execute_crew_workflow, request.user_id, str(request.callback_url), request.matchday)
     return {"status": "processing", "message": "CrewAI agents are running asynchronously. A webhook will follow."}
