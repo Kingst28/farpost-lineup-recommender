@@ -52,11 +52,11 @@ cloud_sql_tool = CloudSQLQueryTool()
 # 3. Pydantic Schema for incoming Rails requests
 class CrewRequest(BaseModel):
     user_id: str
-    matchday: str
     callback_url: str
+    matchday: str
 
 # 4. Asynchronous Background Worker
-def execute_crew_workflow(user_id: str, matchday: str, callback_url: str):
+def execute_crew_workflow(user_id: str, callback_url: str, matchday: str):
     logging.info(f"Starting CrewAI execution for user_id: {user_id}")
     try:
         # Define Agents
