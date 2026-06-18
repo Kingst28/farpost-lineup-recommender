@@ -54,9 +54,10 @@ class CrewRequest(BaseModel):
     user_id: str
     callback_url: str
     matchday: str
+    team_name: str
 
 # 4. Asynchronous Background Worker
-def execute_crew_workflow(user_id: str, callback_url: str, matchday: str):
+def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_name: str):
     logging.info(f"Starting CrewAI execution for user_id: {user_id}")
     try:
         # Define Agents
@@ -201,6 +202,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str):
             "status": "completed",
             "user_id": user_id,
             "matchday": matchday,
+            "team_name": team_name,
             "result": str(result.raw)
         }
     except Exception as e:
@@ -223,5 +225,5 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str):
 @app.post("/api/v1/lineup-analysis")
 async def start_analysis(request: CrewRequest, background_tasks: BackgroundTasks):
     # Enqueue execution thread instantly and respond with 202
-    background_tasks.add_task(execute_crew_workflow, request.user_id, str(request.callback_url), request.matchday)
+    background_tasks.add_task(execute_crew_workflow, request.user_id, str(request.callback_url), request.matchday, request.team_name)
     return {"status": "processing", "message": "CrewAI agents are running asynchronously. A webhook will follow."}
