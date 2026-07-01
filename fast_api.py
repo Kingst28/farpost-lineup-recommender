@@ -31,17 +31,18 @@ class CloudSQLQueryTool(BaseTool):
     description: str = "Use this tool to query the Google Cloud SQL database. Input should be a raw SQL query."
 
     def _run(self, query: str) -> str:
-        connector = Connector()
-        def getconn():
-            return connector.connect(
-                os.environ.get("INSTANCE_CONNECTION_NAME"),
-                "pg8000",
-                user=os.environ.get("DB_USER"),
-                password=os.environ.get("DB_PASS"),
-                db=os.environ.get("DB_NAME"),
-                ip_type=IPTypes.PUBLIC
-            )
-        engine = create_engine("postgresql+pg8000://", creator=getconn)
+        #connector = Connector()
+        #def getconn():
+            #return connector.connect(
+                #os.environ.get("INSTANCE_CONNECTION_NAME"),
+                #"pg8000",
+                #user=os.environ.get("DB_USER"),
+                #password=os.environ.get("DB_PASS"),
+                #db=os.environ.get("DB_NAME"),
+                #ip_type=IPTypes.PUBLIC
+            #)
+        db_url = os.environ.get("DATABASE_URL")
+        engine = create_engine(db_url)
         with engine.connect() as conn:
             result = conn.execute(text(query))
             rows = result.fetchall()
