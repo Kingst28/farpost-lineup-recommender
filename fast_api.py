@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import os
 import warnings
 import logging
@@ -31,10 +30,18 @@ class CloudSQLQueryTool(BaseTool):
     name: str = "Cloud SQL Query Tool"
     description: str = "Use this tool to query the Google Cloud SQL database. Input should be a raw SQL query."
 
-    @abstractmethod
     def _run(self, query: str) -> str:
-        db_url = os.environ.get("DATABASE_URL")
-        engine = create_engine(db_url)
+        connector = Connector()
+        def getconn():
+            return connector.connect(
+                os.environ.get("INSTANCE_CONNECTION_NAME"),
+                "pg8000",
+                user=os.environ.get("DB_USER"),
+                password=os.environ.get("DB_PASS"),
+                db=os.environ.get("DB_NAME"),
+                ip_type=IPTypes.PUBLIC
+            )
+        engine = create_engine("postgresql+pg8000://", creator=getconn)
         with engine.connect() as conn:
             result = conn.execute(text(query))
             rows = result.fetchall()
