@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import os
 import warnings
 import logging
@@ -30,6 +31,7 @@ class CloudSQLQueryTool(BaseTool):
     name: str = "Cloud SQL Query Tool"
     description: str = "Use this tool to query the Google Cloud SQL database. Input should be a raw SQL query."
 
+    @abstractmethod
     def _run(self, query: str) -> str:
         db_url = os.environ.get("DATABASE_URL")
         engine = create_engine(db_url)
