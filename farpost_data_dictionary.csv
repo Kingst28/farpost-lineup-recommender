@@ -1,0 +1,108 @@
+Step,Column Name,Source Database Table,Inferred Type,AI Agent Definition & Usage
+Step 1: User's Current Team Formation,formation,users,String,Formation the user has selected for thier team. Either 4-4-2 or 4-3-3.
+Step 2: User's Current Squad,api_player_id,teamsheets,String/Int,Unique identifier for the player. Use this as the primary key to join with statistical and fixture tables.
+Step 2: User's Current Squad,name,teamsheets,String,Full name of the player.
+Step 2: User's Current Squad,position,players,String,"The player's designated field position (e.g., Goalkeeper, Defender, Midfielder, Striker). Use this to enforce valid lineup formation constraints."
+Step 2: User's Current Squad,team,teams,String,The current real-world team the player plays for. Use this to map the player to upcoming fixtures (Step 2) and team statistics (Steps 4 & 5).
+Step 3: Upcoming Fixtures,round,prem_fixtures,String,"The specific gameweek/round (e.g., 'Regular Season - 35')."
+Step 3: Upcoming Fixtures,hteamid,prem_fixtures,String/Int,Unique identifier for the Home team.
+Step 3: Upcoming Fixtures,hteamname,prem_fixtures,String,Name of the Home team.
+Step 3: Upcoming Fixtures,ateamid,prem_fixtures,String/Int,Unique identifier for the Away team.
+Step 3: Upcoming Fixtures,ateamname,prem_fixtures,String,Name of the Away team.
+Step 4: General & Attacking Stats,api_player_id,player_statistics,String/Int,Unique player identifier.
+Step 4: General & Attacking Stats,name,player_statistics,String,Player's name.
+Step 4: General & Attacking Stats,injured,player_statistics,Boolean/String,"Current injury status. Constraint: If true/injured, the AI must exclude the player from the recommended starting lineup."
+Step 4: General & Attacking Stats,team_id,player_statistics,String/Int,Unique identifier for the player's team.
+Step 4: General & Attacking Stats,team_name,player_statistics,String,Name of the player's team.
+Step 4: General & Attacking Stats,appearances,player_statistics,Integer,Total matches played.
+Step 4: General & Attacking Stats,lineups,player_statistics,Integer,Total matches started. Compare with appearances to assess rotation risk (high lineups = guaranteed starter).
+Step 4: General & Attacking Stats,position,player_statistics,String,Player's position.
+Step 4: General & Attacking Stats,rating,player_statistics,Float,Average match rating. Use as a baseline form indicator.
+Step 4: General & Attacking Stats,shots_total,player_statistics,Integer,Total shots taken. High volume indicates strong goal-scoring potential.
+Step 4: General & Attacking Stats,shots_on,player_statistics,Integer,Shots on target. High ratio of shots_on to shots_total indicates clinical finishing.
+Step 4: General & Attacking Stats,goals_total,player_statistics,Integer,Total goals scored. Highest weighted offensive metric.
+Step 4: General & Attacking Stats,goals_assists,player_statistics,Integer,Total assists. Second highest weighted offensive metric.
+Step 4: General & Attacking Stats,passes_key,player_statistics,Integer,Passes leading to a shot.
+Step 4: General & Attacking Stats,passes_accuracy,player_statistics,Float/Int,Pass completion percentage.
+Step 4: General & Attacking Stats,dribbles_attempts,player_statistics,Integer,Total dribbles attempted.
+Step 4: General & Attacking Stats,dribbles_success,player_statistics,Integer,Successful dribbles. High success indicates a highly involved attacking player.
+Step 4: General & Attacking Stats,fouls_drawn,player_statistics,Integer,Times fouled. Indicates a player who wins free kicks/penalties.
+Step 5: Team Defensive Stats,team_id,team_statistics,String/Int,Unique identifier for the team.
+Step 5: Team Defensive Stats,name,team_statistics,String,Team name.
+Step 5: Team Defensive Stats,played_home,team_statistics,Integer,Total home games played.
+Step 5: Team Defensive Stats,played_away,team_statistics,Integer,Total away games played.
+Step 5: Team Defensive Stats,played_total,team_statistics,Integer,Total games played overall.
+Step 5: Team Defensive Stats,goals_against_home,team_statistics,Integer,Goals conceded at home.
+Step 5: Team Defensive Stats,goals_against_away,team_statistics,Integer,Goals conceded away.
+Step 5: Team Defensive Stats,avg_goals_against_home,team_statistics,Float,Average goals conceded at home. Use to evaluate defenders when playing at home.
+Step 5: Team Defensive Stats,avg_goals_against_away,team_statistics,Float,Average goals conceded away. Use to evaluate defenders when playing away.
+Step 5: Team Defensive Stats,avg_goals_against_total,team_statistics,Float,Overall average goals conceded per game. Lower is better for defensive assets.
+Step 5: Team Defensive Stats,clean_sheets_home,team_statistics,Integer,Total clean sheets at home. High value directly correlates to the likely amount of goals home defenders will concede.
+Step 5: Team Defensive Stats,clean_sheets_away,team_statistics,Integer,Total clean sheets at home. High value directly correlates to the likely amount of goals away defenders will concede.
+Step 6: Team Attacking Stats,team_id,team_statistics,String/Int,Unique identifier for the team.
+Step 6: Team Attacking Stats,name,team_statistics,String,Team name.
+Step 6: Team Attacking Stats,played_home,team_statistics,Integer,Total home games played.
+Step 6: Team Attacking Stats,played_away,team_statistics,Integer,Total away games played.
+Step 6: Team Attacking Stats,played_total,team_statistics,Integer,Total games played overall.
+Step 6: Team Attacking Stats,wins_home,team_statistics,Integer,Home wins. Indicates home dominance.
+Step 6: Team Attacking Stats,wins_away,team_statistics,Integer,Away wins. Indicates away resilience.
+Step 6: Team Attacking Stats,draws_home,team_statistics,Integer,Home draws.
+Step 6: Team Attacking Stats,draws_away,team_statistics,Integer,Away draws.
+Step 6: Team Attacking Stats,losses_home,team_statistics,Integer,Home losses.
+Step 6: Team Attacking Stats,losses_away,team_statistics,Integer,Away losses.
+Step 6: Team Attacking Stats,goals_for_home,team_statistics,Integer,Total goals scored at home. High value boosts home attackers.
+Step 6: Team Attacking Stats,goals_for_away,team_statistics,Integer,Total goals scored away. High value boosts away attackers.
+Step 6: Team Attacking Stats,avg_goals_for_home,team_statistics,Float,Average goals scored at home.
+Step 6: Team Attacking Stats,avg_goals_for_away,team_statistics,Float,Average goals scored away.
+Step 6: Team Attacking Stats,avg_goals_for_total,team_statistics,Float,Overall average goals scored per game.
+Step 6: Team Attacking Stats,failed_to_score_home,team_statistics,Integer,Times team scored 0 goals at home. High value indicates high risk for attackers in home fixtures.
+Step 6: Team Attacking Stats,failed_to_score_away,team_statistics,Integer,Times team scored 0 goals away. High value indicates high risk for attackers in away fixtures.
+Step 7: Defender Stats,api_player_id,player_statistics,String/Int,Unique player identifier.
+Step 7: Defender Stats,name,player_statistics,String,Player's name.
+Step 7: Defender Stats,injured,player_statistics,Boolean/String,Injury status.
+Step 7: Defender Stats,team_id,player_statistics,String/Int,Unique team identifier.
+Step 7: Defender Stats,team_name,player_statistics,String,Team name.
+Step 7: Defender Stats,appearances,player_statistics,Integer,Total matches played.
+Step 7: Defender Stats,lineups,player_statistics,Integer,Total matches started.
+Step 7: Defender Stats,position,player_statistics,String,Will be 'Defender'.
+Step 7: Defender Stats,rating,player_statistics,Float,Average match rating.
+Step 7: Defender Stats,goals_conceded,player_statistics,Integer,Total goals conceded while on pitch. Lower is better.
+Step 7: Defender Stats,tackles_total,player_statistics,Integer,Total tackles.
+Step 7: Defender Stats,tackles_blocks,player_statistics,Integer,Shots/passes blocked.
+Step 7: Defender Stats,tackles_interceptions,player_statistics,Integer,Passes intercepted.
+Step 7: Defender Stats,duels_total,player_statistics,Integer,Total physical/aerial battles.
+Step 7: Defender Stats,duels_won,player_statistics,Integer,Duels successfully won. Combine with duels_total for win percentage. High win rates indicate reliable defenders.
+Step 7: Defender Stats,fouls_committed,player_statistics,Integer,Fouls given away.
+Step 8: Goalkeeper Stats,api_player_id,player_statistics,String/Int,Unique player identifier.
+Step 8: Goalkeeper Stats,name,player_statistics,String,Player's name.
+Step 8: Goalkeeper Stats,team_id,player_statistics,String/Int,Unique team identifier.
+Step 8: Goalkeeper Stats,team_name,player_statistics,String,Team name.
+Step 8: Goalkeeper Stats,appearances,player_statistics,Integer,Total matches played.
+Step 8: Goalkeeper Stats,lineups,player_statistics,Integer,Total matches started. Crucial for GKs as they rarely substitute.
+Step 8: Goalkeeper Stats,position,player_statistics,String,Will be 'Goalkeeper'.
+Step 8: Goalkeeper Stats,rating,player_statistics,Float,Average match rating.
+Step 8: Goalkeeper Stats,goals_conceded,player_statistics,Integer,Total goals conceded. Negative scoring impact.
+Step 8: Goalkeeper Stats,goals_saves,player_statistics,Integer,Total saves made.
+Step 8: Goalkeeper Stats,duels_total,player_statistics,Integer,Physical/aerial battles (usually from crosses/corners).
+Step 8: Goalkeeper Stats,duels_won,player_statistics,Integer,"Duels won (e.g., successful punches/claims)."
+Step 9: Player Status Summary,api_player_id,player_statistics,String/Int,Unique player identifier.
+Step 9: Player Status Summary,name,player_statistics,String,Player's name.
+Step 9: Player Status Summary,injured,player_statistics,Boolean/String,Current availability. Hard Constraint: AI must not recommend players flagged as injured where value is set to true.
+Step 9: Player Status Summary,team_id,player_statistics,String/Int,Unique team identifier.
+Step 9: Player Status Summary,team_name,player_statistics,String,Team name.
+Step 9: Player Status Summary,position,player_statistics,String,Player position.
+Step 10: League Table Standings,id,standings,Integer,Primary key for the standings record.
+Step 10: League Table Standings,rank,standings,Integer,"Current league position (1st, 2nd, etc.). AI should use this to gauge overall team strength and fixture difficulty for matchups."
+Step 10: League Table Standings,team_id,standings,String/Int,"Unique identifier for the team. Use to join with fixtures, player and team statistics."
+Step 10: League Table Standings,team_name,standings,String,Name of the team.
+Step 10: League Table Standings,points,standings,Integer,Total league points accumulated. A primary indicator of team success and momentum.
+Step 10: League Table Standings,goals_diff,standings,Integer,Goal difference (Goals For minus Goals Against).
+Step 10: League Table Standings,form,standings,String,"String representation of recent match results (e.g., 'WWLDW'). AI should use this to identify teams and players on hot or cold streaks."
+Step 10: League Table Standings,played,standings,Integer,Total matches played in the league.
+Step 10: League Table Standings,wins,standings,Integer,Total matches won.
+Step 10: League Table Standings,draws,standings,Integer,Total matches drawn.
+Step 10: League Table Standings,losses,standings,Integer,Total matches lost.
+Step 10: League Table Standings,goals_for,standings,Integer,Total goals scored by the team. Identifies high-scoring teams whose midfielder and striker players should be favored.
+Step 10: League Table Standings,goals_against,standings,Integer,Total goals conceded by the team. Identifies defensively vulnerable teams to target when picking midfielders and strikers.
+Step 10: League Table Standings,created_at,standings,Datetime,System timestamp for when the record was created.
+Step 10: League Table Standings,updated_at,standings,Datetime,System timestamp for last update.

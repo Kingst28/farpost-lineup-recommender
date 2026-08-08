@@ -10,6 +10,7 @@ from google.cloud.sql.connector import Connector, IPTypes
 # CrewAI imports
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import BaseTool
+from crewai.tools import FileReadTool
 
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +25,8 @@ my_llm = LLM(
     base_url="https://generativelanguage.googleapis.com",
     temperature=0.7
 )
+
+data_dictionary_file_read_tool = FileReadTool(file_path='farpost_data_dictionary.csv')
 
 # 2. Database Tool
 class CloudSQLQueryTool(BaseTool):
@@ -75,7 +78,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
             ),
             allow_delegation=False,
             llm=my_llm,
-            tools=[cloud_sql_tool],
+            tools=[cloud_sql_tool, data_dictionary_file_read_tool],
             verbose=True
         )
 
@@ -109,6 +112,8 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
                 f"8. Extract the goalkeeper stats data for each home team player using the cloud_sql_tool via this SQL Query 'select api_player_id, name, team_id, team_name, appearances, lineups, position, rating, goals_conceded, goals_saves, duels_total, duels_won FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' and season = '25-26' and position = 'Goalkeeper');'\n"
                 f"9. Extract the current injured players data for the Premier League from the home team lineup data using the cloud_sql_tool via this SQL Query 'select api_player_id, name, injured, team_id, team_name, position from player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' and season = '26-27');'. If a player is injured remove the player from the recommendation\n"
                 f"10. Extract the current Premier League table using the cloud_sql_tool via this SQL Query 'select * from standings;'"
+                f"11. Extract the data dictionary definitions of all data extracted via SQL using the data_dictionary_file_read_tool."
+
             ),
             expected_output="A comprehensive set of data you can provide to the Fantasy Football Data Analyst Agent",
             agent=ff_data_collection_agent,
@@ -116,8 +121,9 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
 
         analyse_data = Task(
             description=(
-                "1. Analyse the lineup, real world fixture, league table, player and team attacking and defending stats data provided by the data collection agent /n"
-                "2. Use the rules of the fantasy football game here: /n"
+                "1. Utilise the data dictionary to understand the data definitions and how to effectively use the data in your analysis /n"
+                "2. Analyse the lineup, real world fixture, league table, player and team attacking and defending stats data provided by the data collection agent /n"
+                "3. Use the rules of the fantasy football game here: /n"
 
         "On a ‘Match weekend’ your team will have a score calculated as follows: /n"
 
@@ -180,10 +186,10 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
         "subsequent match scores due to this process. /n"
 
         "to recommend the best lineup. /n"
-        "3. In the player attacking stats data set, the goals_total column is the total amount of goals the player has scored, goals_assists is the total amount of assists the player has provided. /n"
-        "4. Always use the player position from the home team squad data as the source of truth. /n"
-        "5. In the injured players data set, False means the player is not injured so is available to play. /n"
-        "6. Analyse each player in the Home team lineup individually taking into consideration thier individual and club attacking and defending stats, the real world fixture, league table and injury data. /n"
+        "4. In the player attacking stats data set, the goals_total column is the total amount of goals the player has scored, goals_assists is the total amount of assists the player has provided. /n"
+        "5. Always use the player position from the home team squad data as the source of truth. /n"
+        "6. In the injured players data set, False means the player is not injured so is available to play. /n"
+        "7. Analyse each player in the Home team lineup individually taking into consideration thier individual and club attacking and defending stats, the real world fixture, league table and injury data. /n"
             ),
             expected_output="Recommendation of the home team lineup (if the team formation is 4-4-2 then 1 Goalkeeper, 4 Defenders, 4 Midfielders, 2 Strikers or if the formation is 4-3-3 1 Goalkeeper, 4 Defenders, 3 Midfielders, 3 Strikers) the fantasy football player should select for the gameweek in order to beat the away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a short and concise summary of the logic used always highlighting along the way the stats used.",
             agent=ff_data_analyst_agent,
