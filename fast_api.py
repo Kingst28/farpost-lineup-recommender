@@ -10,7 +10,7 @@ from google.cloud.sql.connector import Connector, IPTypes
 # CrewAI imports
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import BaseTool
-from crewai.tools import FileReadTool
+from crewai_tools import FileReadTool
 
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
