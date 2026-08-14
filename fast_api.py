@@ -186,10 +186,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
         "subsequent match scores due to this process. /n"
 
         "to recommend the best lineup. /n"
-        "4. In the player attacking stats data set, the goals_total column is the total amount of goals the player has scored, goals_assists is the total amount of assists the player has provided. /n"
-        "5. Always use the player position from the home team squad data as the source of truth. /n"
-        "6. In the injured players data set, False means the player is not injured so is available to play. /n"
-        "7. Analyse each player in the Home team lineup individually taking into consideration thier individual and club attacking and defending stats, the real world fixture, league table and injury data. /n"
+        "4. Analyse each player in the Home team lineup individually taking into consideration thier individual and club attacking and defending stats, the real world fixture, league table and injury data. /n"
             ),
             expected_output="Recommendation of the home team lineup (if the team formation is 4-4-2 then 1 Goalkeeper, 4 Defenders, 4 Midfielders, 2 Strikers or if the formation is 4-3-3 1 Goalkeeper, 4 Defenders, 3 Midfielders, 3 Strikers) the fantasy football player should select for the gameweek in order to beat the away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a short and concise summary of the logic used always highlighting along the way the stats used.",
             agent=ff_data_analyst_agent,
