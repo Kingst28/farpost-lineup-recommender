@@ -21,7 +21,7 @@ Step 4: General & Attacking Stats,rating,player_statistics,Float,Average match r
 Step 4: General & Attacking Stats,shots_total,player_statistics,Integer,Total shots taken. High volume indicates strong goal-scoring potential.
 Step 4: General & Attacking Stats,shots_on,player_statistics,Integer,Shots on target. High ratio of shots_on to shots_total indicates clinical finishing.
 Step 4: General & Attacking Stats,goals_total,player_statistics,Integer,Total goals scored. Highest weighted offensive metric.
-Step 4: General & Attacking Stats,goals_assists,player_statistics,Integer,Total assists. Second highest weighted offensive metric.
+Step 4: General & Attacking Stats,goals_assists,player_statistics,Integer,Total assists. Assists don't count towards fantasy points in our scoring system.
 Step 4: General & Attacking Stats,passes_key,player_statistics,Integer,Passes leading to a shot.
 Step 4: General & Attacking Stats,passes_accuracy,player_statistics,Float/Int,Pass completion percentage.
 Step 4: General & Attacking Stats,dribbles_attempts,player_statistics,Integer,Total dribbles attempted.
