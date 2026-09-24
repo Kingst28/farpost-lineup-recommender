@@ -2,6 +2,7 @@ import os
 import warnings
 import logging
 import httpx
+import pandas as pd
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy import create_engine, text
@@ -45,10 +46,19 @@ class CloudSQLQueryTool(BaseTool):
                 ip_type=IPTypes.PUBLIC
             )
         engine = create_engine("postgresql+pg8000://", creator=getconn)
-        with engine.connect() as conn:
-            result = conn.execute(text(query))
-            rows = result.fetchall()
-            return str(rows)
+        try:
+            # Using pandas automatically pairs column headers with row values
+            with engine.connect() as conn:
+                df = pd.read_sql(text(query), con=conn)
+                
+            if df.empty:
+                return "QUERY_RESULT: No rows returned for this query."
+                
+            # Return as a clean Markdown table with explicit headers
+            return df.to_markdown(index=False)
+            
+        except Exception as e:
+            return f"Error executing query: {str(e)}"
 
 cloud_sql_tool = CloudSQLQueryTool()
 

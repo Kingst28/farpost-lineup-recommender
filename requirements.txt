@@ -7,3 +7,5 @@ pydantic
 SQLAlchemy
 google-genai
 cloud-sql-python-connector[pg8000]
+pandas
+tabulate
