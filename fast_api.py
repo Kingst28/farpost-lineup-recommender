@@ -23,7 +23,7 @@ my_llm = LLM(
     model='gemini/gemini-2.5-flash',
     api_key=GEMINI_API_KEY,
     base_url="https://generativelanguage.googleapis.com",
-    temperature=0.7
+    temperature=0.0
 )
 
 data_dictionary_file_read_tool = FileReadTool(file_path='farpost_data_dictionary.csv')
