@@ -29,23 +29,26 @@ my_llm = LLM(
 
 data_dictionary_file_read_tool = FileReadTool(file_path='farpost_data_dictionary.csv')
 
+connector = Connector()
+
+def getconn():
+    return connector.connect(
+        os.environ.get("INSTANCE_CONNECTION_NAME"),
+        "pg8000",
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASS"),
+        db=os.environ.get("DB_NAME"),
+        ip_type=IPTypes.PUBLIC
+    )
+
+engine = create_engine("postgresql+pg8000://", creator=getconn)
+
 # 2. Database Tool
 class CloudSQLQueryTool(BaseTool):
     name: str = "Cloud SQL Query Tool"
     description: str = "Use this tool to query the Google Cloud SQL database. Input should be a raw SQL query."
 
     def _run(self, query: str) -> str:
-        connector = Connector()
-        def getconn():
-            return connector.connect(
-                os.environ.get("INSTANCE_CONNECTION_NAME"),
-                "pg8000",
-                user=os.environ.get("DB_USER"),
-                password=os.environ.get("DB_PASS"),
-                db=os.environ.get("DB_NAME"),
-                ip_type=IPTypes.PUBLIC
-            )
-        engine = create_engine("postgresql+pg8000://", creator=getconn)
         try:
             # Using pandas automatically pairs column headers with row values
             with engine.connect() as conn:
