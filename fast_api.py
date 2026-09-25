@@ -92,7 +92,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
             allow_delegation=False,
             llm=my_llm,
             tools=[cloud_sql_tool, data_dictionary_file_read_tool],
-            verbose=False
+            verbose=True
         )
 
         ff_data_analyst_agent = Agent(
@@ -109,7 +109,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
             ),
             allow_delegation=False,
             llm=my_llm,
-            verbose=False
+            verbose=True
         )
 
         # Tasks dynamically modifying user_id based on the Rails request payload
@@ -208,7 +208,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
         crew = Crew(
             agents=[ff_data_collection_agent, ff_data_analyst_agent],
             tasks=[extract_data, analyse_data],
-            verbose=False
+            verbose=True
         )
 
         # Kickoff orchestration
