@@ -117,7 +117,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
                 "- Defensive score: Goalkeeper + Defenders total goals conceded divided by 5.\n"
                 "- Subtract goals conceded from total goals scored by starting players.\n"
                 "- Do NOT select injured players.\n"
-                "4. Recommend the best home team lineup. Provide a short, concise one-line summary per player detailing the logic and stats used."
+                "4. Recommend the best home team lineup. Provide a short, concise one-line summary per player detailing the logic and stats used. Always mention the team the player is playing against that gameweek in the logic used summary."
             ),
             expected_output="Recommendation of the home team lineup with one line per player highlighting logic and stats used.",
             agent=ff_data_analyst_agent,
