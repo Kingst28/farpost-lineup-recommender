@@ -67,14 +67,14 @@ def get_all_fantasy_data_fast(user_id: str, matchday: str) -> str:
     output_sections = []
 
     # Read CSV directly
-    try:
-        if os.path.exists("farpost_data_dictionary.csv"):
-            dict_df = pd.read_csv("farpost_data_dictionary.csv")
-            output_sections.append("### DATA DICTIONARY DEFINITIONS\n" + dict_df.to_markdown(index=False))
-    except Exception as e:
-        output_sections.append(f"### DATA DICTIONARY DEFINITIONS\nError reading dictionary: {str(e)}")
+    #try:
+        #if os.path.exists("farpost_data_dictionary.csv"):
+            #dict_df = pd.read_csv("farpost_data_dictionary.csv")
+            #output_sections.append("### DATA DICTIONARY DEFINITIONS\n" + dict_df.to_markdown(index=False))
+    #except Exception as e:
+        #output_sections.append(f"### DATA DICTIONARY DEFINITIONS\nError reading dictionary: {str(e)}")
 
-    # Execute all 10 SQL queries simultaneously across 5 threads
+    #Execute all 10 SQL queries simultaneously across 5 threads
     with ThreadPoolExecutor(max_workers=5) as executor:
         futures = [executor.submit(fetch_single_query, name, sql) for name, sql in queries.items()]
         for future in futures:
@@ -108,16 +108,16 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
 
         analyse_data = Task(
             description=(
-                f"Below is the complete dataset containing squad, fixtures, stats, standings, injuries, and data dictionary:\n\n"
+                f"Below is the complete dataset containing squad, fixtures, stats, standings and injuries. \n\n"
                 f"{raw_data}\n\n"
                 "INSTRUCTIONS:\n"
-                "1. Utilise the data dictionary to understand the data definitions.\n"
-                "2. Analyse the lineup, real world fixture, league table, player and team attacking and defending stats.\n"
-                "3. Use the rules of the fantasy football game:\n"
+                #"1. Utilise the data dictionary to understand the data definitions.\n"
+                "1. Analyse the lineup, real world fixture, league table, player and team attacking and defending stats.\n"
+                "2. Use the rules of the fantasy football game:\n"
                 "- Defensive score: Goalkeeper + Defenders total goals conceded divided by 5.\n"
                 "- Subtract goals conceded from total goals scored by starting players.\n"
                 "- Do NOT select injured players.\n"
-                "4. Recommend the best home team lineup. Provide a short, concise one-line summary per player detailing the logic and stats used. Always mention the team the player is playing against that gameweek in the logic used summary."
+                "3. Recommend the best home team lineup. Provide a short, concise one-line summary per player detailing the logic and stats used. Always mention the team the player is playing against that gameweek in the logic used summary."
             ),
             expected_output="Recommendation of the home team lineup with one line per player highlighting logic and stats used.",
             agent=ff_data_analyst_agent,
