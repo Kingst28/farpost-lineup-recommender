@@ -1,17 +1,17 @@
 import os
 import warnings
 import logging
+from typing import Type
 import httpx
 import pandas as pd
 from fastapi import FastAPI, BackgroundTasks, HTTPException
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, Field
 from sqlalchemy import create_engine, text
 from google.cloud.sql.connector import Connector, IPTypes
 
 # CrewAI imports
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import BaseTool
-from crewai_tools import FileReadTool
 
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
@@ -27,8 +27,6 @@ my_llm = LLM(
     temperature=0.0
 )
 
-data_dictionary_file_read_tool = FileReadTool(file_path='farpost_data_dictionary.csv')
-
 connector = Connector()
 
 def getconn():
@@ -43,27 +41,53 @@ def getconn():
 
 engine = create_engine("postgresql+pg8000://", creator=getconn)
 
-# 2. Database Tool
-class CloudSQLQueryTool(BaseTool):
-    name: str = "Cloud SQL Query Tool"
-    description: str = "Use this tool to query the Google Cloud SQL database. Input should be a raw SQL query."
+# 2. Batch Database & Data Dictionary Tool (Replaces single query tool)
+class BatchFantasyDataInput(BaseModel):
+    user_id: str = Field(..., description="The user ID to fetch fantasy football data for.")
+    matchday: str = Field(..., description="The matchday/round number.")
 
-    def _run(self, query: str) -> str:
+class BatchFantasyDataTool(BaseTool):
+    name: str = "Batch Fantasy Data Tool"
+    description: str = "Retrieves all fantasy football datasets (squad, fixtures, stats, standings, injuries) and data dictionary definitions in a single call."
+    args_schema: Type[BaseModel] = BatchFantasyDataInput
+
+    def _run(self, user_id: str, matchday: str) -> str:
+        queries = {
+            "FORMATION": "SELECT formation FROM users WHERE id = '{user_id}';",
+            "HOME SQUAD": "SELECT t.api_player_id, t.name, p.position, te.name AS team FROM teamsheets t LEFT JOIN players p ON t.api_player_id = p.api_player_id LEFT JOIN teams te ON p.teams_id = te.id WHERE user_id = '{user_id}' AND p.account_id = t.account_id ORDER BY position;",
+            "MATCHWEEK FIXTURES": "SELECT round, hteamid, hteamname, ateamid, ateamname FROM prem_fixtures WHERE round = '{matchday}';",
+            "PLAYER ATTACKING STATS": "SELECT api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, shots_total, shots_on, goals_total, goals_assists, passes_key, passes_accuracy, dribbles_attempts, dribbles_success, fouls_drawn FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' AND season = '26-27');",
+            "TEAM DEFENSIVE STATS": "SELECT team_id, name, played_home, played_away, played_total, goals_against_home, goals_against_away, avg_goals_against_home, avg_goals_against_away, avg_goals_against_total, clean_sheets_home, clean_sheets_away FROM team_statistics WHERE team_id IN (SELECT id FROM teams WHERE id IN (SELECT p.teams_id FROM teamsheets t LEFT JOIN players p ON t.api_player_id = p.api_player_id WHERE t.user_id = '{user_id}' AND season = '26-27'));",
+            "TEAM ATTACKING STATS": "SELECT team_id, name, played_home, played_away, played_total, wins_home, wins_away, draws_home, draws_away, losses_home, losses_away, goals_for_home, goals_for_away, avg_goals_for_home, avg_goals_for_away, avg_goals_for_total, failed_to_score_home, failed_to_score_away FROM team_statistics WHERE team_id IN (SELECT id FROM teams WHERE id IN (SELECT p.teams_id FROM teamsheets t LEFT JOIN players p ON t.api_player_id = p.api_player_id WHERE t.user_id = '{user_id}' AND season = '26-27'));",
+            "PLAYER DEFENSIVE STATS": "SELECT api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, goals_conceded, tackles_total, tackles_blocks, tackles_interceptions, duels_total, duels_won, fouls_committed FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' AND position = 'Defender' AND season = '26-27');",
+            "GOALKEEPER STATS": "SELECT api_player_id, name, team_id, team_name, appearances, lineups, position, rating, goals_conceded, goals_saves, duels_total, duels_won FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' AND season = '26-27' AND position = 'Goalkeeper');",
+            "INJURED PLAYERS": "SELECT api_player_id, name, injured, team_id, team_name, position FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' AND season = '26-27');",
+            "PREMIER LEAGUE STANDINGS": "SELECT * FROM standings;"
+        }
+
+        output_sections = []
+        
+        # 1. Read Data Dictionary CSV directly
         try:
-            # Using pandas automatically pairs column headers with row values
-            with engine.connect() as conn:
-                df = pd.read_sql(text(query), con=conn)
-                
-            if df.empty:
-                return "QUERY_RESULT: No rows returned for this query."
-                
-            # Return as a clean Markdown table with explicit headers
-            return df.to_markdown(index=False)
-            
+            if os.path.exists("farpost_data_dictionary.csv"):
+                dict_df = pd.read_csv("farpost_data_dictionary.csv")
+                output_sections.append("### DATA DICTIONARY DEFINITIONS\n" + dict_df.to_markdown(index=False))
         except Exception as e:
-            return f"Error executing query: {str(e)}"
+            output_sections.append(f"### DATA DICTIONARY DEFINITIONS\nError reading dictionary: {str(e)}")
 
-cloud_sql_tool = CloudSQLQueryTool()
+        # 2. Execute all SQL queries sequentially in Python
+        with engine.connect() as conn:
+            for section_name, sql_query in queries.items():
+                try:
+                    df = pd.read_sql(text(sql_query), con=conn)
+                    table_str = "No rows returned." if df.empty else df.to_markdown(index=False)
+                except Exception as e:
+                    table_str = f"Error executing query: {str(e)}"
+                output_sections.append(f"### {section_name}\n{table_str}")
+
+        return "\n\n".join(output_sections)
+
+batch_fantasy_data_tool = BatchFantasyDataTool()
 
 # 3. Pydantic Schema for incoming Rails requests
 class CrewRequest(BaseModel):
@@ -81,17 +105,12 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
             role="Fantasy Football Data Collection Agent",
             goal="Retrieve Fantasy Football data from relevant data sources which will inform the fantasy football data analyst agent",
             backstory=(
-                "Your job is to retrieve a set of pre-defined fantasy football related data. "
-                "These data sets include home team squad data for the current matchweek, "
-                "the real world fixtures for the current matchweek in the Premier League, "
-                "the current Premier League table standings, "
-                "the attacking and defending performance data for the current season of each player and club they play for found in the line ups, "
-                "the current injuries data for players in the Premier League. "
-    
+                "Your job is to retrieve all fantasy football data sets including squad, fixtures, "
+                "standings, team and player performance stats, injuries, and the data dictionary using the batch tool."
             ),
             allow_delegation=False,
             llm=my_llm,
-            tools=[cloud_sql_tool, data_dictionary_file_read_tool],
+            tools=[batch_fantasy_data_tool],
             verbose=True
         )
 
@@ -112,23 +131,13 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
             verbose=True
         )
 
-        # Tasks dynamically modifying user_id based on the Rails request payload
+        # Simplified Task description to trigger exactly 1 tool call
         extract_data = Task(
             description=(
-                f"1. Extract the home team formation using the cloud_sql_tool via this SQL Query 'select formation from users where id = '{user_id}';'\n"
-                f"2. Extract home team squad data using the cloud_sql_tool via this SQL Query 'select t.api_player_id, t.name, p.position, te.name as team from teamsheets t left join players p on t.api_player_id = p.api_player_id left join teams te on p.teams_id = te.id where user_id = '{user_id}' and p.account_id = t.account_id ORDER BY position;'\n"
-                f"3. Extract the current matchweeks fixture data using the cloud_sql_tool via this SQL Query 'select round, hteamid, hteamname, ateamid, ateamname from prem_fixtures where round = '{matchday}';'\n"
-                f"4. Extract the player attacking stats data for each home team player using the cloud_sql_tool via this SQL Query 'SELECT api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, shots_total, shots_on, goals_total, goals_assists, passes_key, passes_accuracy, dribbles_attempts, dribbles_success, fouls_drawn FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' and season = '26-27');'\n"
-                f"5. Extract the team defensive stats data for each home team players club using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, goals_against_home, goals_against_away, avg_goals_against_home, avg_goals_against_away, avg_goals_against_total, clean_sheets_home, clean_sheets_away from team_statistics WHERE team_id IN (SELECT id FROM teams where id IN (SELECT p.teams_id FROM teamsheets t LEFT JOIN players p ON t.api_player_id = p.api_player_id WHERE t.user_id = '{user_id}' and season = '26-27'));'\n"
-                f"6. Extract the team attacking stats data for each home team players club using the cloud_sql_tool via this SQL Query 'select team_id, name, played_home, played_away, played_total, wins_home, wins_away, draws_home, draws_away, losses_home, losses_away, goals_for_home, goals_for_away, avg_goals_for_home, avg_goals_for_away, avg_goals_for_total, failed_to_score_home, failed_to_score_away from team_statistics WHERE team_id IN (SELECT id FROM teams where id IN (SELECT p.teams_id FROM teamsheets t LEFT JOIN players p ON t.api_player_id = p.api_player_id WHERE t.user_id = '{user_id}' and season = '26-27'));'\n"
-                f"7. Extract the player defensive stats data for each home team player via the api_player_id from the home team player using the cloud_sql_tool via this SQL Query 'select api_player_id, name, injured, team_id, team_name, appearances, lineups, position, rating, goals_conceded, tackles_total, tackles_blocks, tackles_interceptions, duels_total, duels_won, fouls_committed from player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' and position = 'Defender' and season = '26-27');'\n"
-                f"8. Extract the goalkeeper stats data for each home team player using the cloud_sql_tool via this SQL Query 'select api_player_id, name, team_id, team_name, appearances, lineups, position, rating, goals_conceded, goals_saves, duels_total, duels_won FROM player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' and season = '26-27' and position = 'Goalkeeper');'\n"
-                f"9. Extract the current injured players data for the Premier League from the home team lineup data using the cloud_sql_tool via this SQL Query 'select api_player_id, name, injured, team_id, team_name, position from player_statistics WHERE api_player_id IN (SELECT api_player_id FROM teamsheets WHERE user_id = '{user_id}' and season = '26-27');'. If a player is injured remove the player from the recommendation\n"
-                f"10. Extract the current Premier League table using the cloud_sql_tool via this SQL Query 'select * from standings;'"
-                f"11. Extract the data dictionary definitions of all data extracted via SQL using the data_dictionary_file_read_tool."
-
+                f"Extract all required fantasy football datasets and data dictionary definitions in a single call using the "
+                f"'Batch Fantasy Data Tool' with user_id = '{user_id}' and matchday = '{matchday}'."
             ),
-            expected_output="A comprehensive set of data you can provide to the Fantasy Football Data Analyst Agent",
+            expected_output="A comprehensive markdown dataset containing all 10 SQL query results and data dictionary definitions.",
             agent=ff_data_collection_agent,
         )
 
@@ -138,68 +147,68 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
                 "2. Analyse the lineup, real world fixture, league table, player and team attacking and defending stats data provided by the data collection agent /n"
                 "3. Use the rules of the fantasy football game here: /n"
 
-        "On a ‘Match weekend’ your team will have a score calculated as follows: /n"
+                "On a ‘Match weekend’ your team will have a score calculated as follows: /n"
 
-        "(i) any goals conceded during the relevant weekend by your goalkeeper and /n"
+                "(i) any goals conceded during the relevant weekend by your goalkeeper and /n"
 
-        "defenders will count against you even if you have all 5 players from the /n"
+                "defenders will count against you even if you have all 5 players from the /n"
 
-        "same team. For instance – if your goalkeeper and defenders are all Crystal /n"
+                "same team. For instance – if your goalkeeper and defenders are all Crystal /n"
 
-        "Palace players and they concede 2 goals during their weekend match then /n"
+                "Palace players and they concede 2 goals during their weekend match then /n"
 
-        "all 5 players will count the 2 goals conceded against them hence arriving at /n"
+                "all 5 players will count the 2 goals conceded against them hence arriving at /n"
 
-        "a total of 10. /n"
+                "a total of 10. /n"
 
-        "(ii) once you have counted up the total number of goals conceded by your /n"
+                "(ii) once you have counted up the total number of goals conceded by your /n"
 
-        "goalkeeper and defenders you divide that total by 5 to /n"
+                "goalkeeper and defenders you divide that total by 5 to /n"
 
-        "calculate how many goals your team has conceded. Using the example /n"
+                "calculate how many goals your team has conceded. Using the example /n"
 
-        "above your team will have obviously conceded 2 goals. [10 ÷ 5 = 2] /n"
+                "above your team will have obviously conceded 2 goals. [10 ÷ 5 = 2] /n"
 
-        "(iii) if your defence concedes 11-14 goals in total that will still equate to 2 /n"
+                "(iii) if your defence concedes 11-14 goals in total that will still equate to 2 /n"
 
-        "goals conceded by your team, 15-19 will equate to 3 goals etc. and so on. /n"
+                "goals conceded by your team, 15-19 will equate to 3 goals etc. and so on. /n"
 
-        "(iv) your team will then total the number of goals scored by any of your /n"
+                "(iv) your team will then total the number of goals scored by any of your /n"
 
-        "players deemed to have played in your 1st eleven for that /n"
+                "players deemed to have played in your 1st eleven for that /n"
 
-        "weekend/midweek. The organiser will try and verify goal scorers on at /n"
+                "weekend/midweek. The organiser will try and verify goal scorers on at /n"
 
-        "least two sites if there are any queries as to who scored. /n"
+                "least two sites if there are any queries as to who scored. /n"
 
-        "(v) you then subtract the number of goals conceded from the number of goals /n"
+                "(v) you then subtract the number of goals conceded from the number of goals /n"
 
-        "scored to calculate what your team has scored that weekend. For instance /n"
+                "scored to calculate what your team has scored that weekend. For instance /n"
 
-        "– your defence has conceded 2 goals but 3 of your players have scored. /n"
+                "– your defence has conceded 2 goals but 3 of your players have scored. /n"
 
-        "(vi) players do not have to have played a full game to count as having played /n"
+                "(vi) players do not have to have played a full game to count as having played /n"
 
-        "but any goals conceded during the match will count against defenders /n"
+                "but any goals conceded during the match will count against defenders /n"
 
-        "even if they only come on for the last minute of the match. /n"
+                "even if they only come on for the last minute of the match. /n"
 
-        "(vii) if an own goal is scored by your goalkeeper or defenders there is no /n"
+                "(vii) if an own goal is scored by your goalkeeper or defenders there is no /n"
 
-        "added disadvantage to your team. /n"
+                "added disadvantage to your team. /n"
 
-        "(viii) your team will also concede one extra goal for every position in defence /n"
+                "(viii) your team will also concede one extra goal for every position in defence /n"
 
-        "(goalkeeper and 4 defenders) that you fail to field. /n"
+                "(goalkeeper and 4 defenders) that you fail to field. /n"
 
-        "(ix) On a 'match weekend' your team will have a score by the API calculated as follows. /n"
-        "The organiser will use the details issued or standing on the morning after a set of matches have been played /n"
-        "and this will stand even if any other official 'dubious goals' committee credit someone else as scoring that goal at /n"
-        "a later date. Due to the way the fantasy football league is run there will be no facility to change goal scorers and any /n"
-        "subsequent match scores due to this process. /n"
+                "(ix) On a 'match weekend' your team will have a score by the API calculated as follows. /n"
+                "The organiser will use the details issued or standing on the morning after a set of matches have been played /n"
+                "and this will stand even if any other official 'dubious goals' committee credit someone else as scoring that goal at /n"
+                "a later date. Due to the way the fantasy football league is run there will be no facility to change goal scorers and any /n"
+                "subsequent match scores due to this process. /n"
 
-        "to recommend the best lineup. /n"
-        "4. Analyse each player in the Home team lineup individually taking into consideration thier individual and club attacking and defending stats, the real world fixture, league table and injury data. /n"
+                "to recommend the best lineup. /n"
+                "4. Analyse each player in the Home team lineup individually taking into consideration thier individual and club attacking and defending stats, the real world fixture, league table and injury data. /n"
             ),
             expected_output="Recommendation of the home team lineup (if the team formation is 4-4-2 then 1 Goalkeeper, 4 Defenders, 4 Midfielders, 2 Strikers or if the formation is 4-3-3 1 Goalkeeper, 4 Defenders, 3 Midfielders, 3 Strikers) the fantasy football player should select for the gameweek in order to beat the away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a short and concise summary on one line per player of the logic used always highlighting along the way the stats used.",
             agent=ff_data_analyst_agent,
@@ -241,6 +250,5 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
 # 5. FastAPI HTTP Entry Endpoint
 @app.post("/api/v1/lineup-analysis")
 async def start_analysis(request: CrewRequest, background_tasks: BackgroundTasks):
-    # Enqueue execution thread instantly and respond with 202
     background_tasks.add_task(execute_crew_workflow, request.user_id, str(request.callback_url), request.matchday, request.team_name)
     return {"status": "processing", "message": "CrewAI agents are running asynchronously. A webhook will follow."}
