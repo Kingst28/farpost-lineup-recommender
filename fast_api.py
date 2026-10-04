@@ -126,7 +126,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
                     "Scale: 0–4 total conceded = 0 team goals; 5–9 = 1; 10–14 = 2; 15–19 = 3; etc.\n"
                     "- Do NOT select injured players.\n"
             ),
-            expected_output="Recommendation of the home team lineup the fantasy football manager should select for the gameweek in order to beat the away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a short and concise summary on one line per player of the logic used always highlighting along the way the stats used.",
+            expected_output="Recommendation of the home team lineup the fantasy football manager should select for the gameweek in order to beat the away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a concise summary per player of the logic used always highlighting along the way the stats used. Ensure you take into consideration if the player recommended is playing at Home or Away in the real life fixture and the relevant individual and team stats associated with that.",
             agent=ff_data_analyst_agent,
         )
 
