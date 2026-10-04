@@ -114,12 +114,19 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
                 #"1. Utilise the data dictionary to understand the data definitions.\n"
                 "1. Analyse the lineup, real world fixture, league table, player and team attacking and defending stats.\n"
                 "2. Use the rules of the fantasy football game:\n"
-                "- Defensive score: Goalkeeper + Defenders total goals conceded divided by 5.\n"
-                "- Subtract goals conceded from total goals scored by starting players.\n"
-                "- Do NOT select injured players.\n"
-                "3. Recommend the best home team lineup. Provide a short, concise one-line summary per player detailing the logic and stats used. Always mention the team the player is playing against that gameweek in the logic used summary."
+                    "1. Total Goals Scored\n"
+                    "Eligibility: Sum of all goals scored by players in the starting XI.\n"
+                    "Data Source: Finalized using official match details available the morning after matches end.\n"
+                    "Adjustments: Scores are permanently locked. Retroactive stat changes (e.g., dubious goals committee rulings) are ignored.\n"
+                    "2. Team Goals Conceded\n"
+                    "Defensive Roster: Requires 5 slots (1 Goalkeeper + 4 Defenders).\n"
+                    "Minutes Played: Any fielded defensive player (even 1 minute) incurs all goals conceded by their real-life team during that match.\n"
+                    "Own Goals: Incur no additional penalty beyond the goal conceded.\n"
+                    "Unfilled Positions: +1 goal conceded per empty defensive slot.\n"
+                    "Scale: 0–4 total conceded = 0 team goals; 5–9 = 1; 10–14 = 2; 15–19 = 3; etc.\n"
+                    "- Do NOT select injured players.\n"
             ),
-            expected_output="Recommendation of the home team lineup (if the team formation is 4-4-2 then 1 Goalkeeper, 4 Defenders, 4 Midfielders, 2 Strikers or if the formation is 4-3-3 1 Goalkeeper, 4 Defenders, 3 Midfielders, 3 Strikers) the fantasy football player should select for the gameweek in order to beat the away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a short and concise summary on one line per player of the logic used always highlighting along the way the stats used.",
+            expected_output="Recommendation of the home team lineup the fantasy football manager should select for the gameweek in order to beat the away team squad based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the home team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a short and concise summary on one line per player of the logic used always highlighting along the way the stats used.",
             agent=ff_data_analyst_agent,
         )
 
