@@ -100,7 +100,7 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
         ff_data_analyst_agent = Agent(
             role="Fantasy Football Data Analyst Agent",
             goal="Analyse the lineup, real world fixture, current league table standings, team and player performance data in order to recommend the best lineup.",
-            backstory="You are a fantasy football data analyst who aims to recommend the best lineup for a given matchweek fixture.",
+            backstory="You are a fantasy football data analyst who aims to recommend the best lineup for a given matchweek fixture trying to minimise goals conceded for the defence and maximise goals scored across the whole team.",
             allow_delegation=False,
             llm=my_llm,
             verbose=True
