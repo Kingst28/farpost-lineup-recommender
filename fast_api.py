@@ -124,12 +124,12 @@ def execute_crew_workflow(user_id: str, callback_url: str, matchday: str, team_n
                     "Own Goals: Incur no additional penalty beyond the goal conceded.\n"
                     "Unfilled Positions: +1 goal conceded per empty defensive slot.\n"
                     "Scale: 0–4 total conceded = 0 team goals; 5–9 = 1; 10–14 = 2; 15–19 = 3; etc.\n"
-                    "3. Final Score Calculation\n"
+                "3. Final Score Calculation\n"
                     "Subtraction of the total number of goals conceded from the total number of goals scored to calculate what the team has scored that weekend. \n"
                     "Example: – The defence had all 5 players play and conceded 6 goals (-1) but 3 of the players in the squad have scored (+3). The final score for that team would be +2 for that weekend. \n"
-                    "- Do NOT select injured players.\n"
+                "- Do NOT select injured players.\n"
             ),
-            expected_output="Recommendation of the lineup the fantasy football manager should select for the gameweek in order to beat the opponent based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team. Ensure the players picked are only players from the fantasy managers team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a concise summary per player of the logic used always highlighting along the way the stats used. Ensure you take into consideration if the player recommended is playing at Home or Away in the real life fixture and the relevant individual and team stats associated with that.",
+            expected_output="Recommendation of the lineup the fantasy football manager should select for the gameweek in order to beat the opponent based on all data available, game rules and ensuring the player is not injured and makes a high number of appearances for his team versus the total number of league matches played so far from the league table. Ensure the players picked are only players from the fantasy managers team lineup data even if there are no stats available attacking and defending wise for an individual player. Provide a concise summary per player of the logic used always highlighting along the way the stats used. Ensure you take into consideration if the player recommended is playing at Home or Away in the real life fixture and the relevant individual and team stats associated with that.",
             agent=ff_data_analyst_agent,
         )
 
